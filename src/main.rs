@@ -136,6 +136,17 @@ impl eframe::App for MyApp {
                 Tab::Shipping => self.movement_tab_ui(ui, false),
             }
         });
+
+        egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                let message_opt = self.current_status_message();
+                if let Some(message) = message_opt {
+                    ui.label(message);
+                } else {
+                    ui.label(" "); // keep height stable
+                }
+            });
+        });
     }
 }
 
@@ -275,9 +286,6 @@ impl MyApp {
                 form.quantity_text.clear();
             }
         }
-        if !form.status.is_empty() {
-            ui.label(&form.status);
-        }
     }
 
     fn movement_tab_ui(&mut self, ui: &mut egui::Ui, is_warehousing: bool) {
@@ -343,9 +351,6 @@ impl MyApp {
                 }
             }
         }
-        if !form.status.is_empty() {
-            ui.label(&form.status);
-        }
 
         ui.separator();
         ui.strong("Recent transactions");
@@ -356,5 +361,22 @@ impl MyApp {
                 ui.label(format!("{}-{:02}-{:02} [{}] {} x{} - {}", txn.date.0, txn.date.1, txn.date.2, kind, item_name, txn.quantity, txn.note));
             }
         });
+    }
+}
+
+impl MyApp {
+    fn current_status_message(&self) -> Option<String> {
+        match self.selected_tab {
+            Tab::AddItem => {
+                if self.add_item_form.status.is_empty() { None } else { Some(self.add_item_form.status.clone()) }
+            }
+            Tab::Warehousing => {
+                if self.warehousing_form.status.is_empty() { None } else { Some(self.warehousing_form.status.clone()) }
+            }
+            Tab::Shipping => {
+                if self.shipping_form.status.is_empty() { None } else { Some(self.shipping_form.status.clone()) }
+            }
+            Tab::Inventory => None,
+        }
     }
 }
